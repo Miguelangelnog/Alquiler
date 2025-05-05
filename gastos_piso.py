@@ -87,7 +87,7 @@ if st.button("Registrar Mes"):
         "Streaming p/p (½)": streaming_pp,
         "60% Ajustado": share_60_ajust
     }
-    df = df.append(nueva, ignore_index=True)
+    df = pd.concat([df, pd.DataFrame([nueva])], ignore_index=True)
     df.to_csv(CSV_PATH, index=False)
     st.success(f"Gastos de {nueva['Mes']} registrados ✅")
     st.dataframe(df)
