@@ -21,6 +21,18 @@ else:
     ])
     df.to_csv(CSV_PATH, index=False)  # Crear el archivo vacío
 
+# Asegurarse de que todas las columnas necesarias estén presentes
+required_columns = [
+    "Mes", "Agua", "Luz", "Alquiler", 
+    "Internet", "Gas", "Total Básico", "Total con Internet",
+    "Streaming Total", "Streaming p/p (½)", "60% Ajustado"
+]
+
+# Agregar las columnas faltantes en caso de que el CSV no las tenga
+for col in required_columns:
+    if col not in df.columns:
+        df[col] = pd.NA  # Inicializa las columnas faltantes con valores nulos
+
 # 2) Mostrar historial existente
 if not df.empty:
     st.subheader("📜 Historial de Meses")
