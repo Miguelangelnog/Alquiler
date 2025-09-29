@@ -6,21 +6,32 @@ import io
 import time
 
 # -----------------------------
-# Animación de inicio con GIF desde URL
+# 0) Animación inicial
 # -----------------------------
-st.image("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif", use_column_width=True)
-st.subheader("¡Bienvenido a la gestión de gastos! 🏡")
-with st.spinner("Cargando la app... ⏳"):
-    time.sleep(2)  # Simula carga de datos
+# Creamos un contenedor vacío
+placeholder = st.empty()
+
+# Mostramos GIF animado en ese contenedor
+placeholder.image(
+    "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+    use_column_width=True
+)
+placeholder.subheader("¡Cargando la app... 🏡✨")
+
+# Esperamos unos segundos simulando carga
+time.sleep(3)
+
+# Limpiamos el placeholder para mostrar la app
+placeholder.empty()
 
 # -----------------------------
-# Configuración inicial
+# 1) Configuración inicial
 # -----------------------------
 st.title("Gestión de Gastos del Piso 🏡")
 CSV_PATH = "historial_gastos.csv"
 
 # -----------------------------
-# 1) Cargar historial CSV
+# 2) Cargar historial CSV
 # -----------------------------
 if os.path.exists(CSV_PATH):
     df = pd.read_csv(CSV_PATH)
@@ -33,14 +44,14 @@ else:
     df.to_csv(CSV_PATH, index=False)
 
 # -----------------------------
-# 2) Mostrar historial existente
+# 3) Mostrar historial existente
 # -----------------------------
 if not df.empty:
     st.subheader("📜 Historial de Meses")
     st.dataframe(df)
 
 # -----------------------------
-# 3) Función para convertir input a float
+# 4) Función para convertir input a float
 # -----------------------------
 def parse_input(val):
     try:
@@ -49,11 +60,10 @@ def parse_input(val):
         return 0.0
 
 # -----------------------------
-# 4) Inputs de gastos usando placeholder sombreado
+# 5) Inputs de gastos con placeholder
 # -----------------------------
 st.subheader("Registrar nuevos gastos")
 
-# Gastos básicos
 agua_input     = st.text_input("Agua (€)", value="", placeholder="0.00", key="agua")
 luz_input      = st.text_input("Luz (€)", value="", placeholder="0.00", key="luz")
 alquiler_input = st.text_input("Alquiler (€)", value="", placeholder="0.00", key="alquiler")
@@ -66,7 +76,6 @@ alquiler = parse_input(alquiler_input)
 internet = parse_input(internet_input)
 gas      = parse_input(gas_input)
 
-# Streaming
 st.markdown("**Gastos de Streaming**")
 netflix_input  = st.text_input("Netflix (€)", value="", placeholder="0.00", key="netflix")
 disney_input   = st.text_input("Disney+ (€)", value="", placeholder="0.00", key="disney")
@@ -77,11 +86,10 @@ disney   = parse_input(disney_input)
 movistar = parse_input(movistar_input)
 
 # -----------------------------
-# 5) Cálculos
+# 6) Cálculos
 # -----------------------------
 total_basico    = agua + luz + alquiler + gas
 total_internet  = total_basico + internet
-
 streaming_total = netflix + disney + movistar
 streaming_pp    = streaming_total / 2
 share_60        = total_internet * 0.6
@@ -96,7 +104,7 @@ st.write(f"- Streaming total: {streaming_total:.2f} € (p/p = {streaming_pp:.2f
 st.write(f"- 60% ajustado Maria y Miguel (60% – p/p streaming): {share_60_ajust:.2f} €")
 
 # -----------------------------
-# 6) Registrar y guardar en historial
+# 7) Registrar y guardar en historial
 # -----------------------------
 if st.button("Registrar Mes"):
     nueva = {
@@ -118,11 +126,11 @@ if st.button("Registrar Mes"):
     st.dataframe(df)
 
 # -----------------------------
-# 6b) Botón para borrar último mes
+# 8) Botón para borrar último mes
 # -----------------------------
 if st.button("Borrar último mes"):
     if not df.empty:
-        df = df.iloc[:-1]  # elimina la última fila
+        df = df.iloc[:-1]
         df.to_csv(CSV_PATH, index=False)
         st.success("Último mes eliminado ✅")
         st.dataframe(df)
@@ -130,21 +138,19 @@ if st.button("Borrar último mes"):
         st.warning("No hay meses para borrar")
 
 # -----------------------------
-# 7) Gráficas
+# 9) Gráficas
 # -----------------------------
 if not df.empty:
     st.subheader("📊 Gráficas de Gastos")
-    
     # Gráfica completa
     fig, ax = plt.subplots()
     ax.bar(df["Mes"], df["Total con Internet"], label="Total c/Internet")
-    ax.bar(df["Mes"], df["Streaming Total"], bottom=df["Total con Internet"],
-           label="Streaming total")
+    ax.bar(df["Mes"], df["Streaming Total"], bottom=df["Total con Internet"], label="Streaming total")
     ax.set_title("Gastos por Mes (Internet + Streaming)")
     ax.set_ylabel("€")
     ax.legend()
     st.pyplot(fig)
-    
+
     # Descargar gráfica completa
     buf_total = io.BytesIO()
     fig.savefig(buf_total, format="png")
@@ -155,17 +161,24 @@ if not df.empty:
         file_name=f"gastos_total_{pd.Timestamp.now().strftime('%Y-%m-%d')}.png",
         mime="image/png"
     )
-    
+
     # Gráfica del último mes
     ultimo_mes = df.iloc[-1:]
     fig_mes, ax_mes = plt.subplots()
     ax_mes.bar(ultimo_mes["Mes"], ultimo_mes["Total con Internet"], label="Total c/Internet")
-    ax_mes.bar(ultimo_mes["Mes"], ultimo_mes["Streaming Total"], bottom=ultimo_mes["Total con Internet"],
-               label="Streaming total")
+    ax_mes.bar(ultimo_mes["Mes"], ultimo_mes["Streaming Total"], bottom=ultimo_mes["Total con Internet"], label="Streaming total")
     ax_mes.set_title(f"Gastos {ultimo_mes['Mes'].values[0]}")
     ax_mes.set_ylabel("€")
     ax_mes.legend()
     st.pyplot(fig_mes)
-    
+
     # Descargar gráfica del último mes
     buf_mes = io.BytesIO()
+    fig_mes.savefig(buf_mes, format="png")
+    buf_mes.seek(0)
+    st.download_button(
+        label=f"Descargar gráfica del mes {ultimo_mes['Mes'].values[0]}",
+        data=buf_mes,
+        file_name=f"gastos_{ultimo_mes['Mes'].values[0]}.png",
+        mime="image/png"
+    )
