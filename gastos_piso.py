@@ -2,6 +2,28 @@ import streamlit as st
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import io
+import requests
+from streamlit_lottie import st_lottie
+import time
+
+# -----------------------------
+# Animación de inicio con Lottie
+# -----------------------------
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+# URL de animación Lottie gratis
+lottie_json = load_lottieurl("https://assets4.lottiefiles.com/packages/lf20_x62chJ.json")
+
+# Mostrar animación al inicio
+st_lottie(lottie_json, height=200)
+st.subheader("¡Bienvenido a la gestión de gastos! 🏡")
+with st.spinner("Cargando la app... ⏳"):
+    time.sleep(2)  # Simula carga de datos
 
 # -----------------------------
 # Configuración inicial
@@ -9,8 +31,6 @@ import matplotlib.pyplot as plt
 st.title("Gestión de Gastos del Piso 🏡")
 
 CSV_PATH = "historial_gastos.csv"
-EXPORT_PATH = "graficas"
-os.makedirs(EXPORT_PATH, exist_ok=True)
 
 # -----------------------------
 # 1) Cargar historial CSV
@@ -111,6 +131,18 @@ if st.button("Registrar Mes"):
     st.dataframe(df)
 
 # -----------------------------
+# 6b) Botón para borrar último mes
+# -----------------------------
+if st.button("Borrar último mes"):
+    if not df.empty:
+        df = df.iloc[:-1]  # elimina la última fila
+        df.to_csv(CSV_PATH, index=False)
+        st.success("Último mes eliminado ✅")
+        st.dataframe(df)
+    else:
+        st.warning("No hay meses para borrar")
+
+# -----------------------------
 # 7) Gráficas
 # -----------------------------
 if not df.empty:
@@ -126,10 +158,16 @@ if not df.empty:
     ax.legend()
     st.pyplot(fig)
     
-    # Guardar gráfica completa
-    filename_total = f"{EXPORT_PATH}/gastos_total_{pd.Timestamp.now().strftime('%Y-%m-%d')}.png"
-    fig.savefig(filename_total)
-    st.success(f"Gráfica completa exportada como {filename_total}")
+    # Descargar gráfica completa
+    buf_total = io.BytesIO()
+    fig.savefig(buf_total, format="png")
+    buf_total.seek(0)
+    st.download_button(
+        label="Descargar gráfica completa",
+        data=buf_total,
+        file_name=f"gastos_total_{pd.Timestamp.now().strftime('%Y-%m-%d')}.png",
+        mime="image/png"
+    )
     
     # Gráfica del último mes
     ultimo_mes = df.iloc[-1:]
@@ -142,6 +180,13 @@ if not df.empty:
     ax_mes.legend()
     st.pyplot(fig_mes)
     
-    filename_mes = f"{EXPORT_PATH}/gastos_{ultimo_mes['Mes'].values[0]}.png"
-    fig_mes.savefig(filename_mes)
-    st.success(f"Gráfica del mes {ultimo_mes['Mes'].values[0]} exportada ✅")
+    # Descargar gráfica del último mes
+    buf_mes = io.BytesIO()
+    fig_mes.savefig(buf_mes, format="png")
+    buf_mes.seek(0)
+    st.download_button(
+        label=f"Descargar gráfica del mes {ultimo_mes['Mes'].values[0]}",
+        data=buf_mes,
+        file_name=f"gastos_{ultimo_mes['Mes'].values[0]}.png",
+        mime="image/png"
+    )
