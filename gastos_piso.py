@@ -8,21 +8,16 @@ import time
 # -----------------------------
 # 0) Animación inicial
 # -----------------------------
-# Creamos un contenedor vacío
 placeholder = st.empty()
 
-# Mostramos GIF animado en ese contenedor
 placeholder.image(
     "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
-    use_column_width=True
+    use_container_width=True
 )
 placeholder.subheader("¡Cargando la app... 🏡✨")
 
-# Esperamos unos segundos simulando carga
 time.sleep(3)
-
-# Limpiamos el placeholder para mostrar la app
-placeholder.empty()
+placeholder.empty()  # Quitamos el GIF y mostramos la app
 
 # -----------------------------
 # 1) Configuración inicial
@@ -149,7 +144,7 @@ if not df.empty:
     ax.set_title("Gastos por Mes (Internet + Streaming)")
     ax.set_ylabel("€")
     ax.legend()
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
 
     # Descargar gráfica completa
     buf_total = io.BytesIO()
@@ -170,7 +165,7 @@ if not df.empty:
     ax_mes.set_title(f"Gastos {ultimo_mes['Mes'].values[0]}")
     ax_mes.set_ylabel("€")
     ax_mes.legend()
-    st.pyplot(fig_mes)
+    st.pyplot(fig_mes, use_container_width=True)
 
     # Descargar gráfica del último mes
     buf_mes = io.BytesIO()
