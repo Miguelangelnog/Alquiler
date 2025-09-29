@@ -3,24 +3,12 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import io
-import requests
-from streamlit_lottie import st_lottie
 import time
 
 # -----------------------------
-# Animación de inicio con Lottie
+# Animación de inicio con GIF
 # -----------------------------
-def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
-
-# URL de animación Lottie gratis
-lottie_json = load_lottieurl("https://assets4.lottiefiles.com/packages/lf20_x62chJ.json")
-
-# Mostrar animación al inicio
-st_lottie(lottie_json, height=200)
+st.image("bienvenida.gif", use_column_width=True)
 st.subheader("¡Bienvenido a la gestión de gastos! 🏡")
 with st.spinner("Cargando la app... ⏳"):
     time.sleep(2)  # Simula carga de datos
@@ -29,7 +17,6 @@ with st.spinner("Cargando la app... ⏳"):
 # Configuración inicial
 # -----------------------------
 st.title("Gestión de Gastos del Piso 🏡")
-
 CSV_PATH = "historial_gastos.csv"
 
 # -----------------------------
