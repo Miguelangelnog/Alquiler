@@ -25,16 +25,6 @@ else:
     ])
     df.to_csv(CSV_PATH, index=False)
 
-required_columns = [
-    "Mes", "Agua", "Luz", "Alquiler",
-    "Internet", "Gas", "Total Básico", "Total con Internet",
-    "Streaming Total", "Streaming p/p (½)", "60% Ajustado"
-]
-
-for col in required_columns:
-    if col not in df.columns:
-        df[col] = pd.NA
-
 # -----------------------------
 # 2) Mostrar historial existente
 # -----------------------------
@@ -43,26 +33,25 @@ if not df.empty:
     st.dataframe(df)
 
 # -----------------------------
-# 3) Función para parsear inputs
+# 3) Función para convertir input a float
 # -----------------------------
 def parse_input(val):
-    """Convierte input de texto a float, 0 si está vacío o inválido"""
     try:
         return float(val)
     except (ValueError, TypeError):
         return 0.0
 
 # -----------------------------
-# 4) Inputs de gastos
+# 4) Inputs de gastos usando placeholder sombreado
 # -----------------------------
 st.subheader("Registrar nuevos gastos")
 
 # Gastos básicos
-agua_input     = st.text_input("Agua (€)", value="0.00", key="agua")
-luz_input      = st.text_input("Luz (€)", value="0.00", key="luz")
-alquiler_input = st.text_input("Alquiler (€)", value="0.00", key="alquiler")
-internet_input = st.text_input("Internet (€)", value="0.00", key="internet")
-gas_input      = st.text_input("Gas (€)", value="0.00", key="gas")
+agua_input     = st.text_input("Agua (€)", value="", placeholder="0.00", key="agua")
+luz_input      = st.text_input("Luz (€)", value="", placeholder="0.00", key="luz")
+alquiler_input = st.text_input("Alquiler (€)", value="", placeholder="0.00", key="alquiler")
+internet_input = st.text_input("Internet (€)", value="", placeholder="0.00", key="internet")
+gas_input      = st.text_input("Gas (€)", value="", placeholder="0.00", key="gas")
 
 agua     = parse_input(agua_input)
 luz      = parse_input(luz_input)
@@ -72,9 +61,9 @@ gas      = parse_input(gas_input)
 
 # Streaming
 st.markdown("**Gastos de Streaming**")
-netflix_input  = st.text_input("Netflix (€)", value="0.00", key="netflix")
-disney_input   = st.text_input("Disney+ (€)", value="0.00", key="disney")
-movistar_input = st.text_input("Movistar Plus (€)", value="0.00", key="movistar")
+netflix_input  = st.text_input("Netflix (€)", value="", placeholder="0.00", key="netflix")
+disney_input   = st.text_input("Disney+ (€)", value="", placeholder="0.00", key="disney")
+movistar_input = st.text_input("Movistar Plus (€)", value="", placeholder="0.00", key="movistar")
 
 netflix  = parse_input(netflix_input)
 disney   = parse_input(disney_input)
@@ -92,7 +81,6 @@ share_60        = total_internet * 0.6
 share_40        = total_internet * 0.4
 share_60_ajust  = share_60 - streaming_pp
 
-# Mostrar resultados
 st.subheader(f"Total a depositar al señor Luis: {total_basico:.2f} €")
 st.subheader(f"Total con Internet: {total_internet:.2f} €")
 st.write(f"- 60% original sin ajuste de plataformas streaming: {share_60:.2f} €")
@@ -123,7 +111,7 @@ if st.button("Registrar Mes"):
     st.dataframe(df)
 
 # -----------------------------
-# 7) Gráficas del historial
+# 7) Gráficas
 # -----------------------------
 if not df.empty:
     st.subheader("📊 Gráficas de Gastos")
