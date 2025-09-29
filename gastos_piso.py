@@ -3,6 +3,9 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
+# -----------------------------
+# Configuración inicial
+# -----------------------------
 st.title("Gestión de Gastos del Piso 🏡")
 
 CSV_PATH = "historial_gastos.csv"
@@ -40,49 +43,45 @@ if not df.empty:
     st.dataframe(df)
 
 # -----------------------------
-# Función para borrar input al click
+# 3) Función para parsear inputs
 # -----------------------------
-def reset_input(key):
-    if st.session_state[key + "_clicked"] == False:
-        st.session_state[key] = 0.0
-        st.session_state[key + "_clicked"] = True
+def parse_input(val):
+    """Convierte input de texto a float, 0 si está vacío o inválido"""
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return 0.0
 
 # -----------------------------
-# Inicializar session_state
-# -----------------------------
-keys = ["agua", "luz", "alquiler", "internet", "gas", "netflix", "disney", "movistar"]
-for key in keys:
-    if key not in st.session_state:
-        st.session_state[key] = 0.0
-    if key + "_clicked" not in st.session_state:
-        st.session_state[key + "_clicked"] = False
-
-# -----------------------------
-# 3) Inputs de nuevos gastos
+# 4) Inputs de gastos
 # -----------------------------
 st.subheader("Registrar nuevos gastos")
 
-agua     = st.number_input("Agua (€)", value=st.session_state["agua"], min_value=0.0,
-                           key="agua", on_change=reset_input, args=("agua",))
-luz      = st.number_input("Luz (€)", value=st.session_state["luz"], min_value=0.0,
-                           key="luz", on_change=reset_input, args=("luz",))
-alquiler = st.number_input("Alquiler (€)", value=st.session_state["alquiler"], min_value=0.0,
-                           key="alquiler", on_change=reset_input, args=("alquiler",))
-internet = st.number_input("Internet (€)", value=st.session_state["internet"], min_value=0.0,
-                           key="internet", on_change=reset_input, args=("internet",))
-gas      = st.number_input("Gas (€)", value=st.session_state["gas"], min_value=0.0,
-                           key="gas", on_change=reset_input, args=("gas",))
+# Gastos básicos
+agua_input     = st.text_input("Agua (€)", value="0.00", key="agua")
+luz_input      = st.text_input("Luz (€)", value="0.00", key="luz")
+alquiler_input = st.text_input("Alquiler (€)", value="0.00", key="alquiler")
+internet_input = st.text_input("Internet (€)", value="0.00", key="internet")
+gas_input      = st.text_input("Gas (€)", value="0.00", key="gas")
 
+agua     = parse_input(agua_input)
+luz      = parse_input(luz_input)
+alquiler = parse_input(alquiler_input)
+internet = parse_input(internet_input)
+gas      = parse_input(gas_input)
+
+# Streaming
 st.markdown("**Gastos de Streaming**")
-netflix  = st.number_input("Netflix (€)", value=st.session_state["netflix"], min_value=0.0,
-                           key="netflix", on_change=reset_input, args=("netflix",))
-disney   = st.number_input("Disney+ (€)", value=st.session_state["disney"], min_value=0.0,
-                           key="disney", on_change=reset_input, args=("disney",))
-movistar = st.number_input("Movistar Plus (€)", value=st.session_state["movistar"], min_value=0.0,
-                           key="movistar", on_change=reset_input, args=("movistar",))
+netflix_input  = st.text_input("Netflix (€)", value="0.00", key="netflix")
+disney_input   = st.text_input("Disney+ (€)", value="0.00", key="disney")
+movistar_input = st.text_input("Movistar Plus (€)", value="0.00", key="movistar")
+
+netflix  = parse_input(netflix_input)
+disney   = parse_input(disney_input)
+movistar = parse_input(movistar_input)
 
 # -----------------------------
-# 4) Cálculos
+# 5) Cálculos
 # -----------------------------
 total_basico    = agua + luz + alquiler + gas
 total_internet  = total_basico + internet
@@ -93,15 +92,16 @@ share_60        = total_internet * 0.6
 share_40        = total_internet * 0.4
 share_60_ajust  = share_60 - streaming_pp
 
+# Mostrar resultados
 st.subheader(f"Total a depositar al señor Luis: {total_basico:.2f} €")
 st.subheader(f"Total con Internet: {total_internet:.2f} €")
-st.write(f"- 60% original: {share_60:.2f} €")
-st.write(f"- 40%: {share_40:.2f} €")
+st.write(f"- 60% original sin ajuste de plataformas streaming: {share_60:.2f} €")
+st.write(f"- 40% Papa: {share_40:.2f} €")
 st.write(f"- Streaming total: {streaming_total:.2f} € (p/p = {streaming_pp:.2f} €)")
-st.write(f"- 60% ajustado: {share_60_ajust:.2f} €")
+st.write(f"- 60% ajustado Maria y Miguel (60% – p/p streaming): {share_60_ajust:.2f} €")
 
 # -----------------------------
-# 5) Registrar Mes
+# 6) Registrar y guardar en historial
 # -----------------------------
 if st.button("Registrar Mes"):
     nueva = {
@@ -123,11 +123,12 @@ if st.button("Registrar Mes"):
     st.dataframe(df)
 
 # -----------------------------
-# 6) Gráficas
+# 7) Gráficas del historial
 # -----------------------------
 if not df.empty:
     st.subheader("📊 Gráficas de Gastos")
     
+    # Gráfica completa
     fig, ax = plt.subplots()
     ax.bar(df["Mes"], df["Total con Internet"], label="Total c/Internet")
     ax.bar(df["Mes"], df["Streaming Total"], bottom=df["Total con Internet"],
@@ -142,7 +143,7 @@ if not df.empty:
     fig.savefig(filename_total)
     st.success(f"Gráfica completa exportada como {filename_total}")
     
-    # Gráfica último mes
+    # Gráfica del último mes
     ultimo_mes = df.iloc[-1:]
     fig_mes, ax_mes = plt.subplots()
     ax_mes.bar(ultimo_mes["Mes"], ultimo_mes["Total con Internet"], label="Total c/Internet")
@@ -152,6 +153,7 @@ if not df.empty:
     ax_mes.set_ylabel("€")
     ax_mes.legend()
     st.pyplot(fig_mes)
+    
     filename_mes = f"{EXPORT_PATH}/gastos_{ultimo_mes['Mes'].values[0]}.png"
     fig_mes.savefig(filename_mes)
     st.success(f"Gráfica del mes {ultimo_mes['Mes'].values[0]} exportada ✅")
