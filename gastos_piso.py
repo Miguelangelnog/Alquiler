@@ -3,76 +3,104 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-# Título de la app
+# -----------------------------
+# Configuración inicial
+# -----------------------------
 st.title("Gestión de Gastos del Piso 🏡")
 
-# Ruta del archivo CSV
 CSV_PATH = "historial_gastos.csv"
+EXPORT_PATH = "graficas"
+os.makedirs(EXPORT_PATH, exist_ok=True)
 
-# 1) Cargar historial desde CSV (si existe)
+# -----------------------------
+# 1) Cargar historial CSV
+# -----------------------------
 if os.path.exists(CSV_PATH):
-    df = pd.read_csv(CSV_PATH)  # Cargar historial si ya existe
+    df = pd.read_csv(CSV_PATH)
 else:
-    # Crear el CSV vacío con las columnas adecuadas si no existe
     df = pd.DataFrame(columns=[
-        "Mes", "Agua", "Luz", "Alquiler", 
+        "Mes", "Agua", "Luz", "Alquiler",
         "Internet", "Gas", "Total Básico", "Total con Internet",
         "Streaming Total", "Streaming p/p (½)", "60% Ajustado"
     ])
-    df.to_csv(CSV_PATH, index=False)  # Crear el archivo vacío
+    df.to_csv(CSV_PATH, index=False)
 
-# Asegurarse de que todas las columnas necesarias estén presentes
 required_columns = [
-    "Mes", "Agua", "Luz", "Alquiler", 
+    "Mes", "Agua", "Luz", "Alquiler",
     "Internet", "Gas", "Total Básico", "Total con Internet",
     "Streaming Total", "Streaming p/p (½)", "60% Ajustado"
 ]
 
-# Agregar las columnas faltantes en caso de que el CSV no las tenga
 for col in required_columns:
     if col not in df.columns:
-        df[col] = pd.NA  # Inicializa las columnas faltantes con valores nulos
+        df[col] = pd.NA
 
+# -----------------------------
 # 2) Mostrar historial existente
+# -----------------------------
 if not df.empty:
     st.subheader("📜 Historial de Meses")
     st.dataframe(df)
 
-# 3) Inputs de nuevos gastos
+# -----------------------------
+# 3) Inputs de nuevos gastos (se borran al hacer click)
+# -----------------------------
 st.subheader("Registrar nuevos gastos")
-agua      = st.number_input("Agua (€)",     min_value=0.0, key="agua")
-luz       = st.number_input("Luz (€)",      min_value=0.0, key="luz")
-alquiler  = st.number_input("Alquiler (€)", min_value=0.0, key="alquiler")
-internet  = st.number_input("Internet (€)", min_value=0.0, key="internet")
-gas       = st.number_input("Gas (€)",      min_value=0.0, key="gas")
+
+def parse_input(key):
+    """Convierte text_input a float o 0 si está vacío"""
+    val = st.session_state.get(key, "")
+    try:
+        return float(val)
+    except ValueError:
+        return 0.0
+
+# Inputs principales
+agua_input = st.text_input("Agua (€)", value="", key="agua")
+luz_input = st.text_input("Luz (€)", value="", key="luz")
+alquiler_input = st.text_input("Alquiler (€)", value="", key="alquiler")
+internet_input = st.text_input("Internet (€)", value="", key="internet")
+gas_input = st.text_input("Gas (€)", value="", key="gas")
+
+agua     = parse_input("agua")
+luz      = parse_input("luz")
+alquiler = parse_input("alquiler")
+internet = parse_input("internet")
+gas      = parse_input("gas")
 
 # Streaming
 st.markdown("**Gastos de Streaming**")
-netflix     = st.number_input("Netflix (€)",         min_value=0.0, key="netflix")
-disney      = st.number_input("Disney+ (€)",         min_value=0.0, key="disney")
-movistar    = st.number_input("Movistar Plus (€)",   min_value=0.0, key="movistar")
+netflix_input = st.text_input("Netflix (€)", value="", key="netflix")
+disney_input  = st.text_input("Disney+ (€)", value="", key="disney")
+movistar_input= st.text_input("Movistar Plus (€)", value="", key="movistar")
 
+netflix  = parse_input("netflix")
+disney   = parse_input("disney")
+movistar = parse_input("movistar")
+
+# -----------------------------
 # 4) Cálculos principales
-total_basico    = agua + luz + alquiler + gas  # Añadimos el gas al total básico
+# -----------------------------
+total_basico    = agua + luz + alquiler + gas
 total_internet  = total_basico + internet
 
 streaming_total = netflix + disney + movistar
 streaming_pp    = streaming_total / 2
 share_60        = total_internet * 0.6
 share_40        = total_internet * 0.4
-
-# Ajustamos el 60% restando la mitad del streaming
 share_60_ajust  = share_60 - streaming_pp
 
 # Mostrar resultados
-st.subheader(f"Total Básico (con gas): {total_basico:.2f} €")
+st.subheader(f"Total a depositar al señor Luis: {total_basico:.2f} €")
 st.subheader(f"Total con Internet: {total_internet:.2f} €")
-st.write(f"- 60% original: {share_60:.2f} €")
-st.write(f"- 40%: {share_40:.2f} €")
+st.write(f"- 60% original sin ajuste de plataformas streaming: {share_60:.2f} €")
+st.write(f"- 40% Papa: {share_40:.2f} €")
 st.write(f"- Streaming total: {streaming_total:.2f} € (p/p = {streaming_pp:.2f} €)")
-st.write(f"- 60% ajustado (60% – p/p streaming): {share_60_ajust:.2f} €")
+st.write(f"- 60% ajustado Maria y Miguel (60% – p/p streaming): {share_60_ajust:.2f} €")
 
+# -----------------------------
 # 5) Registrar y guardar en historial
+# -----------------------------
 if st.button("Registrar Mes"):
     nueva = {
         "Mes": pd.Timestamp.now().strftime("%Y-%m"),
@@ -92,8 +120,13 @@ if st.button("Registrar Mes"):
     st.success(f"Gastos de {nueva['Mes']} registrados ✅")
     st.dataframe(df)
 
+# -----------------------------
 # 6) Gráficos del historial
+# -----------------------------
 if not df.empty:
+    st.subheader("📊 Gráficas de Gastos")
+    
+    # Gráfica completa
     fig, ax = plt.subplots()
     ax.bar(df["Mes"], df["Total con Internet"], label="Total c/Internet")
     ax.bar(df["Mes"], df["Streaming Total"], bottom=df["Total con Internet"],
@@ -102,3 +135,23 @@ if not df.empty:
     ax.set_ylabel("€")
     ax.legend()
     st.pyplot(fig)
+    
+    # Guardar gráfica completa
+    filename_total = f"{EXPORT_PATH}/gastos_total_{pd.Timestamp.now().strftime('%Y-%m-%d')}.png"
+    fig.savefig(filename_total)
+    st.success(f"Gráfica completa exportada como {filename_total}")
+
+    # Gráfica del último mes
+    ultimo_mes = df.iloc[-1:]
+    fig_mes, ax_mes = plt.subplots()
+    ax_mes.bar(ultimo_mes["Mes"], ultimo_mes["Total con Internet"], label="Total c/Internet")
+    ax_mes.bar(ultimo_mes["Mes"], ultimo_mes["Streaming Total"], bottom=ultimo_mes["Total con Internet"],
+               label="Streaming total")
+    ax_mes.set_title(f"Gastos {ultimo_mes['Mes'].values[0]}")
+    ax_mes.set_ylabel("€")
+    ax_mes.legend()
+    st.pyplot(fig_mes)
+
+    filename_mes = f"{EXPORT_PATH}/gastos_{ultimo_mes['Mes'].values[0]}.png"
+    fig_mes.savefig(filename_mes)
+    st.success(f"Gráfica del mes {ultimo_mes['Mes'].values[0]} exportada ✅")
