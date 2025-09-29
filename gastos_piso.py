@@ -6,9 +6,9 @@ import io
 import time
 
 # -----------------------------
-# Animación de inicio con GIF
+# Animación de inicio con GIF desde URL
 # -----------------------------
-st.image("bienvenida.gif", use_column_width=True)
+st.image("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif", use_column_width=True)
 st.subheader("¡Bienvenido a la gestión de gastos! 🏡")
 with st.spinner("Cargando la app... ⏳"):
     time.sleep(2)  # Simula carga de datos
@@ -169,11 +169,3 @@ if not df.empty:
     
     # Descargar gráfica del último mes
     buf_mes = io.BytesIO()
-    fig_mes.savefig(buf_mes, format="png")
-    buf_mes.seek(0)
-    st.download_button(
-        label=f"Descargar gráfica del mes {ultimo_mes['Mes'].values[0]}",
-        data=buf_mes,
-        file_name=f"gastos_{ultimo_mes['Mes'].values[0]}.png",
-        mime="image/png"
-    )
